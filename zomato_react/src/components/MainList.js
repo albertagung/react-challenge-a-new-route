@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios'
-import configureStore from '../store/configureStore'
-import { getAllCollections } from '../actions/collectionsAction'
-
-const store = configureStore()
+import { connect } from 'react-redux'
+import * as collectionsAction from '../actions/collectionsAction'
 
 class MainList extends Component {
   constructor (props) {
@@ -11,11 +9,6 @@ class MainList extends Component {
     this.state = {
       collections: []
     }
-    store.subscribe(() => {
-      this.setState({
-        collections: store.getState().collectionList.collections
-      })
-    })
   }
   componentWillMount = () => {
     Axios.get(`https://developers.zomato.com/api/v2.1/collections`, {
@@ -27,7 +20,10 @@ class MainList extends Component {
         'user-key': '428923ad3bad98317ed12b98036fdc83'
       }
     }).then(({data}) => {
-      store.dispatch(getAllCollections(data.collections))
+      this.props.getAllCollections(data.collections)
+      this.setState({
+        collections: this.props.collections
+      })
     }).catch((err) => {
       console.log(err)
     })
@@ -69,4 +65,15 @@ class MainList extends Component {
   }
 }
 
-export default MainList
+const mapStateToProps = (state) => {
+  return {
+    collections: state.collectionList.collections
+  }
+}
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getAllCollections: collections => dispatch(collectionsAction.getAllCollections(collections))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MainList)

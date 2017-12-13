@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios'
-import configureStore from '../store/configureStore'
-import { getAllListItem } from '../actions/listItemAction'
-
-const store = configureStore()
+import { connect } from 'react-redux'
+import * as listItemAction from '../actions/listItemAction'
 
 class ListItem extends Component {
   constructor (props) {
@@ -11,11 +9,6 @@ class ListItem extends Component {
     this.state = {
       collectionItem: []
     }
-    store.subscribe(() => {
-      this.setState({
-        collectionItem: store.getState().listItem.listItem
-      })
-    })
   }
   componentWillMount = () => {
     Axios.get('https://developers.zomato.com/api/v2.1/search', {
@@ -28,10 +21,11 @@ class ListItem extends Component {
         'user-key': '428923ad3bad98317ed12b98036fdc83'
       }
     }).then(({data: {restaurants}}) => {
-      // this.setState({
-      //   collectionItem: restaurants
-      // })
-      store.dispatch(getAllListItem(restaurants))
+      // store.dispatch(getAllListItem(restaurants))
+      this.props.getAllListItem(restaurants)
+      this.setState({
+        collectionItem: this.props.listItem
+      })
     }).catch((err) => {
       console.log(err)
     })
@@ -68,4 +62,16 @@ class ListItem extends Component {
   }
 }
 
-export default ListItem
+const mapStateToProps = (state) => {
+  return {
+    listItem: state.listItem.listItem
+  }
+}
+
+const mapDispatchToProps = (dispatch => {
+  return {
+    getAllListItem: listItem => dispatch(listItemAction.getAllListItem(listItem))
+  }
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(ListItem)
