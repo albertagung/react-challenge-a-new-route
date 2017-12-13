@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
 import Axios from 'axios'
+import configureStore from '../store/configureStore'
+import { getAllCollections } from '../actions/collectionsAction'
+
+const store = configureStore()
 
 class MainList extends Component {
   constructor (props) {
@@ -7,6 +11,11 @@ class MainList extends Component {
     this.state = {
       collections: []
     }
+    store.subscribe(() => {
+      this.setState({
+        collections: store.getState().collectionList.collections
+      })
+    })
   }
   componentWillMount = () => {
     Axios.get(`https://developers.zomato.com/api/v2.1/collections`, {
@@ -18,9 +27,7 @@ class MainList extends Component {
         'user-key': '428923ad3bad98317ed12b98036fdc83'
       }
     }).then(({data}) => {
-      this.setState({
-        collections: data.collections
-      })
+      store.dispatch(getAllCollections(data.collections))
     }).catch((err) => {
       console.log(err)
     })
